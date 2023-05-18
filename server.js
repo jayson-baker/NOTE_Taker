@@ -32,7 +32,9 @@ app.delete("/api/notes/:id", (req, res) => {
   );
   let index = currentNotes.findIndex((el) => el.id === idToDelete);
   currentNotes.splice(index, 1);
-  console.log(currentNotes);
+  fs.writeFile(`./db/db.json`, JSON.stringify(currentNotes), (err) =>
+    err ? console.error(err) : console.log(`A note has been DELETED`)
+  );
   res.sendStatus(200);
 });
 
