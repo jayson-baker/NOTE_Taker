@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
+const uniqid = require("uniqid");
 
 const PORT = process.env.PORT;
 
@@ -16,10 +17,6 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "/public/index.html"));
 });
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "/public/index.html"));
-});
-
 app.get("/notes", (req, res) => {
   res.sendFile(path.join(__dirname, "/public/notes.html"));
 });
@@ -28,19 +25,27 @@ app.get("/api/notes", (req, res) => {
   res.sendFile(path.join(__dirname, "/db/db.json"));
 });
 
-app.delete("/api/notes/:id", (req, res) => {});
+app.delete("/api/notes/:id", (req, res) => {
+  const idToDelete = req.params.id;
+  const currentNotes = JSON.parse(
+    fs.readFileSync("./db/db.json", { encoding: "utf8" })
+  );
+  let index = currentNotes.findIndex((el) => el.id === idToDelete);
+  currentNotes.splice(index, 1);
+  console.log(currentNotes);
+  res.sendStatus(200);
+});
 
 app.post("/api/notes", (req, res) => {
   console.info(`${req.method} request received`);
   const { title, text } = req.body;
 
   if (title && text) {
-    let randomId = Math.floor(Math.random() * 10000);
     const combineNotes = JSON.parse(
       fs.readFileSync("./db/db.json", { encoding: "utf8" })
     );
     const newNote = {
-      id: randomId,
+      id: uniqid(),
       title,
       text,
     };
@@ -66,7 +71,7 @@ app.post("/api/notes", (req, res) => {
 });
 
 app.get("*", (req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "/public/placeholder.html"));
+  res.sendFile(path.join(__dirname, "/public/index.html"));
 });
 
 app.listen(PORT, () => {
